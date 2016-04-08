@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Eletronic Life 1.1b</title>
+    <link rel="stylesheet" href="css/electronic-life-1.1.css">
+</head>
+
+<body>
+    <div class="splash-container">
+        <div class="splash">
+            <h1 class="splash-head">Welcome to the Electronic Life!</h1>
+            <p class="splash-subhead">
+                Watch below the #1 Life Simulator in the market.
+            </p>
+        </div>
+    </div>
+    <div class="content-wrapper">
+        <div class="content">
+            <div class="is-center">
+                <textarea id="lifeWindow" rows="15" cols="35" readonly></textarea>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="js/electronic-life-1.1.js"></script>
+    <script type="text/javascript" src="js/electronic-life-maps-1.1.js"></script>
+    <script>
+        
+        var world = new WildWorld(valley, valleyLegend);
+        setInterval(function(){
+            world.turn();
+            document.getElementById("lifeWindow").value = world.toString();
+        }, 1000);
+    </script>
+</body>
+
+</html>

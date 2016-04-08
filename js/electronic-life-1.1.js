@@ -1,3 +1,6 @@
+/**
+ * Version 1.0
+ */
 
 Object.prototype.toString = function() {
     var str = "[";
@@ -170,3 +173,89 @@ View.prototype.find = function(ch) {
  * 
 */
 function Wall() { }
+
+/**
+ * Version 1.1
+ */
+var actionTypes = Object.create(null);
+
+actionTypes.grow = function (critter){
+    critter.energy += 0.5;
+    return true;
+};
+
+actionTypes.move = function (critter, vector, action){
+    var dest = this.checkDestination(action, vector);
+    if(dest == null || critter.energy <= 1 || this.grid.get(dest) != null) return false;
+    critter.energy -= 1;
+    this.grid.set(vector, null);
+    this.grid.set(dest, critter);
+    return true;
+};
+
+actionTypes.eat = function (critter, vector, action){
+    var dest = this.checkDestination(action, vector);
+    var atDest = dest != null && this.grid.get(dest);
+    if(!atDest || atDest.energy == null) return false;
+    critter.energy += atDest.energy;
+    this.grid.set(dest, null);
+    return true;
+};
+
+actionTypes.reproduce = function (critter, vector, action){
+    var baby = elementFromChar(this.legend, critter.originChar);
+    var dest = this.checkDestination(action, vector);
+    if(dest == null || critter.energy <= 2 * baby.energy 
+            || this.grid.get(dest) != null) return false;
+    critter.energy -= 2 * baby.energy;
+    this.grid.set(dest, baby);
+    return true;
+};
+/**
+ * 
+ */
+function WildWorld(map, legend){
+    World.call(this, map, legend);
+}
+
+WildWorld.prototype = Object.create(World.prototype);
+
+WildWorld.prototype.letAct = function (critter, vector) {
+    var action = critter.act(new View(this, vector));
+    var handled = action && action.type in actionTypes && 
+        actionTypes[action.type].call(this, critter, vector, action);
+    if(!handled){
+        critter.energy -= 0.2;
+        if(critter.energy <= 0)
+            this.grid.set(vector, null);
+    }
+};
+/**
+ * 
+ */
+function Plant(){
+    this.energy = 3 + Math.random() * 4;
+}
+
+Plant.prototype.act = function (view){
+    if(this.energy > 15){
+        var space = view.find(" ");
+        if(space) return {type: "reproduce", direction: space};
+    }
+    if(this.energy < 20) return {type: "grow"};
+};
+
+/**
+ * 
+ */
+function PlantEater(){
+    this.energy = 20;
+}
+
+PlantEater.prototype.act = function (view){
+    var space = view.find(" ");
+    if(this.energy > 60 && space) return {type: "reproduce", direction: space};
+    var plant = view.find("*");
+    if(plant) return {type: "eat", direction: plant};
+    if(space) return {type: "move", direction: space};
+}
