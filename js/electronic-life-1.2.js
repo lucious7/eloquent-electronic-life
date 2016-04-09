@@ -298,14 +298,29 @@ function EmptySpace() {
  */
 function Tiger() {
     this.energy = 20;
-    this.legend = ["@"];
+    this.legend = ["g","G","@"];
+    this.pregnancy = 0;
 }
 Tiger.prototype.act = function (view){
     var space = view.find(new EmptySpace());
+    if(space && this.pregnancy == 3){
+      this.pregnancy = 0;
+      return new ReproduceAction(space);  
+    } 
+    if(this.energy > 40 && !this.pregnancy){
+        this.pregnancy = 1;
+        return null;
+    }
+    if(this.pregnancy && this.pregnancy < 3){
+        this.pregnancy++;
+        return null;
+    }
     var critter = view.find(new PlantEater());
     if(critter) return new EatAction(critter);
     if(space) return new MoveAction(space);
 };
 Tiger.prototype.getChar = function() {
-    return "@";
+    if(this.pregnancy) return this.legend[2];
+    return (this.energy <= 40 ? this.legend[0] :  this.legend[1]);
+
 }
