@@ -155,30 +155,48 @@ View.prototype.look = function(dir) {
         return charFromElement(this.world.grid.get(target));
     } else return "#";
 };
-View.prototype.findAll = function(ch) {
+View.prototype.findAll = function(element) {
     var found = [];
     for (var dir in directions) {
-        if (this.look(dir) == ch) {
+        if (element.legend.includes(this.look(dir)) ) {
             found.push(dir);
         }
     }
     return found;
 };
-View.prototype.find = function(ch) {
-    var found = this.findAll(ch);
+View.prototype.find = function(element) {
+    var found = this.findAll(element);
     if (found.length == 0) return null;
     return randomElement(found);
 };
 /** 
  * 
 */
-function Wall() { }
+function Wall() {
+    this.legend = ["#"];
+ }
 Wall.prototype.getChar = function (){
     return "#";
 };
 /**
  * Version 1.1
  */
+function MoveAction(dir){
+    this.type = "move";
+    this.direction = dir;
+}
+function EatAction(dir){
+    this.type = "eat";
+    this.direction = dir;
+}
+function ReproduceAction(dir){
+    this.type = "reproduce";
+    this.direction = dir;
+}
+function GrowAction(){
+    this.type = "grow";
+}
+
 var actionTypes = Object.create(null);
 
 actionTypes.grow = function (critter){
@@ -242,10 +260,10 @@ function Plant(){
 
 Plant.prototype.act = function (view){
     if(this.energy > 15){
-        var space = view.find(" ");
-        if(space) return {type: "reproduce", direction: space};
+        var space = view.find(new EmptySpace());
+        if(space) return new ReproduceAction(space);
     }
-    if(this.energy < 20) return {type: "grow"};
+    if(this.energy < 20) return new GrowAction();
 };
 Plant.prototype.getChar = function () {
     var energy = Math.min(Math.floor(this.energy/5), 3);
@@ -262,14 +280,18 @@ function PlantEater(){
 }
 
 PlantEater.prototype.act = function (view){
-    var space = view.find(" ");
-    if(this.energy > 60 && space) return {type: "reproduce", direction: space};
-    var plant = view.find(".");
-    if(plant) return {type: "eat", direction: plant};
-    if(space) return {type: "move", direction: space};
+    var space = view.find(new EmptySpace());
+    if(this.energy > 60 && space) return new ReproduceAction(space);
+    var plant = view.find(new Plant());
+    if(plant) return new EatAction(plant);
+    if(space) return new MoveAction(space);
 };
 PlantEater.prototype.getChar = function (){
     var energy = Math.min(Math.floor(this.energy/20), 3);
 
     return this.legend[energy];
 };
+
+function EmptySpace() {
+    this.legend = [" "];
+}
