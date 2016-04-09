@@ -6,7 +6,7 @@ Object.prototype.toString = function() {
     var str = "[";
     for (var p in this) {
         if (this.hasOwnProperty(p)) {
-            str += p + ':' + this[p].name + ', ';
+            str += '('+ p + ')' + this[p].name + ', ';
         }
     }
     return str.slice(0,-2) + "]";
@@ -101,7 +101,7 @@ function World(map, legend) {
 }
 function charFromElement(element) {
     if (element == null) return " ";
-    return element.originChar;
+    return element.getChar();
 }
 World.prototype.turn = function() {
     this.turnNumber++;
@@ -173,7 +173,9 @@ View.prototype.find = function(ch) {
  * 
 */
 function Wall() { }
-
+Wall.prototype.getChar = function (){
+    return "#";
+};
 /**
  * Version 1.1
  */
@@ -235,6 +237,7 @@ WildWorld.prototype.letAct = function (critter, vector) {
  */
 function Plant(){
     this.energy = 3 + Math.random() * 4;
+    this.legend = ". ! * %".split(" ");
 }
 
 Plant.prototype.act = function (view){
@@ -244,18 +247,29 @@ Plant.prototype.act = function (view){
     }
     if(this.energy < 20) return {type: "grow"};
 };
+Plant.prototype.getChar = function () {
+    var energy = Math.min(Math.floor(this.energy/5), 3);
+
+    return this.legend[energy];
+};
 
 /**
  * 
  */
 function PlantEater(){
     this.energy = 20;
+    this.legend = "o O 0 Ω".split(" ");
 }
 
 PlantEater.prototype.act = function (view){
     var space = view.find(" ");
     if(this.energy > 60 && space) return {type: "reproduce", direction: space};
-    var plant = view.find("*");
+    var plant = view.find(".");
     if(plant) return {type: "eat", direction: plant};
     if(space) return {type: "move", direction: space};
-}
+};
+PlantEater.prototype.getChar = function (){
+    var energy = Math.min(Math.floor(this.energy/20), 3);
+
+    return this.legend[energy];
+};
